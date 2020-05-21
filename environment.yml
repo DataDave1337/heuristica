@@ -1,0 +1,20 @@
+name: heuristica
+
+channels:
+  - conda-forge
+  
+dependencies:
+  - python=3.8
+  - scikit-learn
+  - pandas
+  - numpy
+  - flask
+  - matplotlib
+  - jupyter
+  - jupyterlab
+  - ipywidgets
+  - pip
+  - seaborn
+  - scipy
+  - pyyaml
+  - pyside2
