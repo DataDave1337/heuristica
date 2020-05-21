@@ -1,8 +1,8 @@
 # heuristica
 
-----
-
 Simple tool to manually develop heuristics based on a user defined rule set. As of now there's only an code example which applies one specific rule on a given binary classification problem and visualize the results in a scatter matrix (as shown in the screenshot below). 
+
+![scatter_example](images/scatter_example.png)
 
 The Future plans are:
 
@@ -14,10 +14,20 @@ The Future plans are:
 - Rule suggestion mechanism
 - Different rule concatenations
 
-![scatter_example](images/scatter_example.png)
+Mockup of the planned UI:
+
+![ui_sketch](images/ui_sketch.png)
 
 ## Installation
 
 Create the python environment using:
 `conda env create -f environment.yml`
+
+Activate Environment:
+
+`conda activate heuristica`
+
+Run Notebook-Server and open the notebook :
+
+`jupyter lab notebook/Rule_Scatter.ipynb`
 
