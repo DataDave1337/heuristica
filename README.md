@@ -18,16 +18,35 @@ Mockup of the planned UI:
 
 ![ui_sketch](images/ui_sketch.png)
 
+Current state of the UI stub:
+
+![ui_stub](images/ui_stub.png)
+
 ## Installation
 
 Create the python environment using:
-`conda env create -f environment.yml`
+
+```shell
+conda env create -f environment.yml
+```
 
 Activate Environment:
 
-`conda activate heuristica`
+```shell
+conda activate heuristica
+```
 
 Run Notebook-Server and open the notebook :
 
-`jupyter lab notebook/Rule_Scatter.ipynb`
+```shell
+jupyter lab notebook/Rule_Scatter.ipynb
+```
+
+The UI stub can be started by the following commands:
+
+```shell
+cd src
+python app.py
+```
+
 
