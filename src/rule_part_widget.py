@@ -2,7 +2,7 @@ from PySide2 import QtWidgets, QtGui, QtCore
 
 class RulePartWidget(QtWidgets.QWidget):
 
-    def __init__(self, parent=None, options=['feature a', 'feature b', 'feature c']):
+    def __init__(self, parent=None, options=['feature a', 'feature b', 'feature c'], rule_number=-1):
         QtWidgets.QWidget.__init__(self, parent)
 
         self.layout = QtWidgets.QHBoxLayout(self)
@@ -17,7 +17,10 @@ class RulePartWidget(QtWidgets.QWidget):
 
         
         # add to layout
-        self.layout.addWidget(QtWidgets.QLabel('Rule Part X', self))
+        if rule_number == -1:
+            self.layout.addWidget(QtWidgets.QLabel('Rule Part X', self))
+        else:
+            self.layout.addWidget(QtWidgets.QLabel(f'Rule Part {rule_number}', self))
         self.layout.addWidget(combo_box)
         self.layout.addWidget(QtWidgets.QLabel('between', self))
         self.layout.addWidget(self.min_box)

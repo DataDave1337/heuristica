@@ -10,6 +10,8 @@ from rule_part_widget import RulePartWidget
 from rule_table_model import RuleTableModel
 
 class MainWindow(QMainWindow):
+    
+    MAX_RULE_PARTS = 7
 
     def plot_scatter(self):
         rule_attr = 'petal width (cm)'
@@ -32,6 +34,8 @@ class MainWindow(QMainWindow):
         # Menu
         self.menu = self.menuBar()
         self.file_menu = self.menu.addMenu("File")
+
+        self.rule_parts = []
 
         # Exit QAction
         exit_action = QAction("Exit", self)
@@ -56,10 +60,12 @@ class MainWindow(QMainWindow):
         left_col = self.setup_left_col()
         right_col = self.setup_right_col()
 
-        self.layout.addLayout(left_col)
-        self.layout.addLayout(right_col)
+        self.layout.addWidget(left_col, stretch=2)
+        self.layout.addWidget(right_col, stretch=1)
 
     def setup_left_col(self):
+
+        col_box = QtWidgets.QGroupBox('Rule and data visualization')
         left_col_layout = QtWidgets.QVBoxLayout()
 
         fig = self.plot_scatter()
@@ -91,11 +97,19 @@ class MainWindow(QMainWindow):
 
         left_col_layout.addWidget(canvas)
         left_col_layout.addLayout(list_box)
+        col_box.setLayout(left_col_layout)
+        return col_box
 
-        return left_col_layout
+    def add_rule_part(self):
+
+        n_rule_parts = len(self.rule_parts)
+        if n_rule_parts < self.MAX_RULE_PARTS:
+            rule_part = RulePartWidget(rule_number=n_rule_parts+1)
+            self.rule_parts.append(rule_part)
+            self.rule_part_layout.insertWidget(n_rule_parts, rule_part)
 
     def setup_right_col(self):
-
+        col_box = QtWidgets.QGroupBox('Rule definition')
         # rule table
         table = QtWidgets.QTableView()
 
@@ -111,23 +125,24 @@ class MainWindow(QMainWindow):
         table.setModel(model)
 
         right_col_layout = QtWidgets.QVBoxLayout()
-        right_col_layout.addWidget(table, stretch=1)
-        right_col_layout.addStretch()
-        right_col_layout.addWidget(RulePartWidget())
-        right_col_layout.addWidget(RulePartWidget())
-        right_col_layout.addWidget(RulePartWidget())
-        right_col_layout.addWidget(RulePartWidget())
-        right_col_layout.addWidget(RulePartWidget())
+
+        self.rule_part_layout = QtWidgets.QVBoxLayout()
+        self.add_rule_part()
 
         add_rule_btn = QtWidgets.QPushButton('Add Rule part')
+        add_rule_btn.clicked.connect(self.add_rule_part)
         btn_layout = QtWidgets.QHBoxLayout()
         btn_layout.addStretch(stretch=1)
         btn_layout.addWidget(add_rule_btn)
         btn_layout.addStretch(stretch=1)
+        self.rule_part_layout.addLayout(btn_layout)
+        self.rule_part_layout.addStretch(stretch=1)
 
-        right_col_layout.addLayout(btn_layout)
+        right_col_layout.addWidget(table, stretch=1)
+        right_col_layout.addLayout(self.rule_part_layout, stretch=1)
 
-        return right_col_layout
+        col_box.setLayout(right_col_layout)
+        return col_box
 
 if __name__ == '__main__':
     # Create the Qt Application
