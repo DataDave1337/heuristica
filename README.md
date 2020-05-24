@@ -20,7 +20,7 @@ Mockup of the planned UI:
 
 Current state of the UI stub:
 
-![ui_stub](images/ui_stub.png)
+![ui_stub](images/ui_stub_v2.png)
 
 ## Installation
 
