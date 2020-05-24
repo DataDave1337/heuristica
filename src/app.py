@@ -8,6 +8,7 @@ from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from rule_part_widget import RulePartWidget
 from rule_table_model import RuleTableModel
+from plot_attr_selection_widget import PlotAttrSelectionWidget
 
 class MainWindow(QMainWindow):
     
@@ -44,7 +45,6 @@ class MainWindow(QMainWindow):
 
         self.file_menu.addAction(exit_action)
 
-
         self._main = QtWidgets.QWidget()
         self.setCentralWidget(self._main)
         self.layout = QtWidgets.QHBoxLayout(self._main)
@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         right_col = self.setup_right_col()
 
         self.layout.addWidget(left_col, stretch=2)
-        self.layout.addWidget(right_col, stretch=1)
+        self.layout.addLayout(right_col, stretch=1)
 
     def setup_left_col(self):
 
@@ -74,29 +74,10 @@ class MainWindow(QMainWindow):
 
         canvas.updateGeometry()
 
-        # List Widgets
-        list_box = QtWidgets.QHBoxLayout()
-        list1 = QtWidgets.QListWidget()
-
-        list1.addItems(self.scatter_cols)
-        list2 = QtWidgets.QListWidget()
-        list_box.addWidget(list1)
-        button_layout = QtWidgets.QVBoxLayout()
-        mButtonToSelected = QtWidgets.QPushButton(">>")
-        mBtnMoveToAvailable = QtWidgets.QPushButton(">")
-        mBtnMoveToSelected = QtWidgets.QPushButton("<")
-        mButtonToAvailable = QtWidgets.QPushButton("<<")
-        button_layout.addStretch(stretch=1)
-        button_layout.addWidget(mButtonToSelected)
-        button_layout.addWidget(mBtnMoveToAvailable)
-        button_layout.addWidget(mBtnMoveToSelected)
-        button_layout.addWidget(mButtonToAvailable)
-        button_layout.addStretch(stretch=1)
-        list_box.addLayout(button_layout)
-        list_box.addWidget(list2)
+        plot_attr_selection = PlotAttrSelectionWidget(parent=self, attributes=self.scatter_cols)
 
         left_col_layout.addWidget(canvas)
-        left_col_layout.addLayout(list_box)
+        left_col_layout.addWidget(plot_attr_selection)
         col_box.setLayout(left_col_layout)
         return col_box
 
@@ -109,7 +90,10 @@ class MainWindow(QMainWindow):
             self.rule_part_layout.insertWidget(n_rule_parts, rule_part)
 
     def setup_right_col(self):
-        col_box = QtWidgets.QGroupBox('Rule definition')
+
+        right_col_layout = QtWidgets.QVBoxLayout()
+        statistics_box = QtWidgets.QGroupBox('Rule statistics')
+        statistics_layout = QtWidgets.QVBoxLayout()
         # rule table
         table = QtWidgets.QTableView()
 
@@ -123,12 +107,12 @@ class MainWindow(QMainWindow):
 
         model = RuleTableModel(data)
         table.setModel(model)
+        statistics_layout.addWidget(table)
+        statistics_box.setLayout(statistics_layout)
 
-        right_col_layout = QtWidgets.QVBoxLayout()
-
+        rule_part_box = QtWidgets.QGroupBox('Rule definition')
         self.rule_part_layout = QtWidgets.QVBoxLayout()
         self.add_rule_part()
-
         add_rule_btn = QtWidgets.QPushButton('Add Rule part')
         add_rule_btn.clicked.connect(self.add_rule_part)
         btn_layout = QtWidgets.QHBoxLayout()
@@ -137,12 +121,12 @@ class MainWindow(QMainWindow):
         btn_layout.addStretch(stretch=1)
         self.rule_part_layout.addLayout(btn_layout)
         self.rule_part_layout.addStretch(stretch=1)
+        rule_part_box.setLayout(self.rule_part_layout)
 
-        right_col_layout.addWidget(table, stretch=1)
-        right_col_layout.addLayout(self.rule_part_layout, stretch=1)
+        right_col_layout.addWidget(statistics_box, stretch=1)
+        right_col_layout.addWidget(rule_part_box, stretch=1)
 
-        col_box.setLayout(right_col_layout)
-        return col_box
+        return right_col_layout
 
 if __name__ == '__main__':
     # Create the Qt Application
