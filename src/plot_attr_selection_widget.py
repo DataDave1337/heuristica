@@ -55,6 +55,9 @@ class PlotAttrSelectionWidget(QtWidgets.QWidget):
         self.connections()
         self.set_button_status()
 
+    def get_plot_attr(self):
+        return [self.list_plot.item(i).text() for i in range(self.list_plot.count())]
+
     def move_all2plot(self):
         while self.list_ign.count() > 0:
             item = self.list_ign.takeItem(0)
@@ -109,6 +112,9 @@ class PlotAttrSelectionWidget(QtWidgets.QWidget):
         self.btn_moveall2plot.setDisabled(self.list_empty(self.list_ign))
         self.btn_move2ign.setDisabled(self.selection_empty(self.list_plot) or self.list_empty(self.list_plot))
         self.btn_moveall2ign.setDisabled(self.list_empty(self.list_plot))
+
+        print(f'Plot ATTR {self.get_plot_attr()}')
+
 
         for btn in [self.btn_move2plot,
                     self.btn_moveall2plot,

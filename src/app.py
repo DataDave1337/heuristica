@@ -3,27 +3,47 @@ from PySide2 import QtWidgets, QtGui, QtCore
 from PySide2.QtGui import QKeySequence
 from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QAction
 from PySide2.QtCore import qApp
-from plot_data import load_data, scatter_rule
+from plot_data import ScatterPlotter
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from rule_part_widget import RulePartWidget
 from rule_table_model import RuleTableModel
 from plot_attr_selection_widget import PlotAttrSelectionWidget
+from sklearn import datasets
+
+
+def load_data():
+    df = datasets.load_iris(as_frame=True)['frame']
+    df.loc[df['target']==2, 'bin_target'] = 1
+    df.loc[df['target']!=2, 'bin_target'] = 0
+    return df
 
 class MainWindow(QMainWindow):
     
     MAX_RULE_PARTS = 7
 
     def plot_scatter(self):
-        rule_attr = 'petal width (cm)'
-        attr_min = 1.5
-        attr_max = None
+        rules = [
+            {
+                'rule_attr': 'petal width (cm)',
+                'attr_min': 1.5,
+                'attr_max': None
+            },
+            {
+                'rule_attr': 'petal length (cm)',
+                'attr_min': 5.0,
+                'attr_max': None
+            }
+        ]
+        # TODO: Replace by UI attributes
         self.scatter_cols = ['sepal length (cm)',
             'sepal width (cm)',
             'petal length (cm)',
             'petal width (cm)']
+        
         df = load_data()
-        scatter_plot = scatter_rule(df, self.scatter_cols, rule_attr, attr_min, attr_max)
+        plotter = ScatterPlotter(df)
+        scatter_plot = plotter.scatter_rule(self.scatter_cols, rules)
 
         return scatter_plot.fig
 
@@ -75,6 +95,7 @@ class MainWindow(QMainWindow):
         canvas.updateGeometry()
 
         plot_attr_selection = PlotAttrSelectionWidget(parent=self, attributes=self.scatter_cols)
+        print(f'Plot items: {plot_attr_selection.get_plot_attr()}')
 
         left_col_layout.addWidget(canvas)
         left_col_layout.addWidget(plot_attr_selection)
