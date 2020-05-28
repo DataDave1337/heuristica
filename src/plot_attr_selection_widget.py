@@ -2,6 +2,8 @@ from PySide2 import QtWidgets, QtGui, QtCore
 
 class PlotAttrSelectionWidget(QtWidgets.QWidget):
 
+    change_listener = []
+
     def __init__(self, parent=None, attributes=['feature a', 'feature b', 'feature c'], rule_number=-1):
         QtWidgets.QWidget.__init__(self, parent)
                 # List Widgets
@@ -55,6 +57,9 @@ class PlotAttrSelectionWidget(QtWidgets.QWidget):
         self.connections()
         self.set_button_status()
 
+    def registerChangeListener(self, func):
+        self.change_listener.append(func)
+
     def get_plot_attr(self):
         return [self.list_plot.item(i).text() for i in range(self.list_plot.count())]
 
@@ -102,6 +107,10 @@ class PlotAttrSelectionWidget(QtWidgets.QWidget):
     def list_empty(self, list_widget):
         return list_widget.count() == 0
 
+    def _call_listener(self):
+        for f in self.change_listener:
+            f()
+
     def set_button_status(self):
         self.btn_up.setDisabled(self.selection_empty(self.list_plot) or
                                    (self.list_plot.currentRow() == 0))
@@ -115,7 +124,7 @@ class PlotAttrSelectionWidget(QtWidgets.QWidget):
 
         print(f'Plot ATTR {self.get_plot_attr()}')
 
-
+        
         for btn in [self.btn_move2plot,
                     self.btn_moveall2plot,
                     self.btn_move2ign,
@@ -136,5 +145,10 @@ class PlotAttrSelectionWidget(QtWidgets.QWidget):
 
         self.btn_up.clicked.connect(self.button_up)
         self.btn_down.clicked.connect(self.button_down)
+
+        # item inserted or deleted signal
+        list_model = self.list_plot.model()
+        list_model.rowsInserted.connect(self._call_listener)
+        list_model.rowsRemoved.connect(self._call_listener)
 
 

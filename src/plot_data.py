@@ -55,7 +55,7 @@ class ScatterPlotter():
 
         return rules
 
-    def scatter_rule(self, scatter_cols, rules): #,rule_attr, attr_min=None, attr_max=None):
+    def scatter_rule(self, scatter_cols, rules, ax=None):
         df = self.data
 
         rules = self.fill_ranges(rules)
@@ -66,25 +66,36 @@ class ScatterPlotter():
         col_col = 'result'
         cmap = create_colormap()
         
-        pair_plot = sns.pairplot(df[scatter_cols+[col_col]],
-                                hue=col_col,
-                                palette=cmap,
-                                diag_kind='hist',
-                                diag_kws={'alpha': 0.7})
+        # pandas version
+        c = [cmap[r] for r in df[col_col]]
+        if ax is None:
+            axes = pd.plotting.scatter_matrix(df[scatter_cols+[col_col]], c=c, s=200, alpha=0.7)
+            fig = axes[0][0].get_figure()
+        else:
+            axes = pd.plotting.scatter_matrix(df[scatter_cols+[col_col]], c=c, s=200, alpha=0.7, ax=ax)
+        # seaborn version
+        # pair_plot = sns.pairplot(df[scatter_cols+[col_col]],
+        #                         hue=col_col,
+        #                         palette=cmap,
+        #                         diag_kind='hist',
+        #                         diag_kws={'alpha': 0.7})
         # plot rule coverage
-        for rule_dict in rules:
-            rule_attr = rule_dict['rule_attr']
-            attr_min = rule_dict['attr_min']
-            attr_max = rule_dict['attr_max']
-            col_axes = pair_plot.axes[:, scatter_cols.index(rule_attr)]
-            row_axes = pair_plot.axes[scatter_cols.index(rule_attr), :]
-            for ax in col_axes:
-                ax.axvspan(attr_min, attr_max, alpha=0.2, color='C1')
-            for ax in row_axes:
-                ax.axhspan(attr_min, attr_max, alpha=0.2, color='C1')
-        
-        self.print_additional_stats()
-        return pair_plot
+        # for rule_dict in rules:
+        #     rule_attr = rule_dict['rule_attr']
+        #     attr_min = rule_dict['attr_min']
+        #     attr_max = rule_dict['attr_max']
+        #     col_idx = scatter_cols.index(rule_attr)
+        #     col_axes = axes[:, col_idx]
+        #     row_axes = axes[col_idx, :]
+        #     if col_idx != -1:
+        #         for ax in col_axes:
+        #             ax.axvspan(attr_min, attr_max, alpha=0.2, color='C1')
+        #         for ax in row_axes:
+        #             ax.axhspan(attr_min, attr_max, alpha=0.2, color='C1')
+        # calc rule stats
+        # self.print_additional_stats()
+        plt.tight_layout()
+        return axes
         
     def print_additional_stats(self):
         conf_mat = pd.crosstab(self.data['bin_target'], self.data['rule_flag'])

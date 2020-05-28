@@ -10,6 +10,7 @@ from rule_part_widget import RulePartWidget
 from rule_table_model import RuleTableModel
 from plot_attr_selection_widget import PlotAttrSelectionWidget
 from sklearn import datasets
+from matplotlib.figure import Figure
 
 
 def load_data():
@@ -22,35 +23,47 @@ class MainWindow(QMainWindow):
     
     MAX_RULE_PARTS = 7
 
-    def plot_scatter(self):
-        rules = [
-            {
-                'rule_attr': 'petal width (cm)',
-                'attr_min': 1.5,
-                'attr_max': None
-            },
-            {
-                'rule_attr': 'petal length (cm)',
-                'attr_min': 5.0,
-                'attr_max': None
-            }
-        ]
-        # TODO: Replace by UI attributes
-        self.scatter_cols = ['sepal length (cm)',
-            'sepal width (cm)',
-            'petal length (cm)',
-            'petal width (cm)']
-        
-        df = load_data()
-        plotter = ScatterPlotter(df)
-        scatter_plot = plotter.scatter_rule(self.scatter_cols, rules)
+    # TODO: Replace by UI attributes
+    scatter_cols = ['sepal length (cm)',
+        'sepal width (cm)',
+        'petal length (cm)',
+        'petal width (cm)']
 
-        return scatter_plot.fig
+    rules = [
+        {
+            'rule_attr': 'petal width (cm)',
+            'attr_min': 1.5,
+            'attr_max': None
+        },
+        {
+            'rule_attr': 'petal length (cm)',
+            'attr_min': 5.0,
+            'attr_max': None
+        }
+    ]
+
+    def plot_scatter(self, cols=None, ax=None):
+
+        plotter = ScatterPlotter(self.df)
+        # plt_attr = self.plot_attr_selection.get_plot_attr()
+        # scatter_plot = plotter.scatter_rule(plt_attr, rules)
+
+        if cols is None:
+            plt_cols = self.scatter_cols
+        else:
+            plt_cols = cols
+
+        axes = plotter.scatter_rule(plt_cols, self.rules, ax=ax)
+
+
+        # return figure
 
     def __init__(self):
         QMainWindow.__init__(self)
         
         self.setWindowTitle("Heuristic Generator")
+
+        self.df = load_data()
         
         # Menu
         self.menu = self.menuBar()
@@ -88,19 +101,40 @@ class MainWindow(QMainWindow):
         col_box = QtWidgets.QGroupBox('Rule and data visualization')
         left_col_layout = QtWidgets.QVBoxLayout()
 
-        fig = self.plot_scatter()
-        canvas = FigureCanvas(fig)
-        self.addToolBar(NavigationToolbar(canvas, self))
+        # self.fig = self.plot_scatter()
+        # self.canvas = FigureCanvas(self.fig)
+        # self.addToolBar(NavigationToolbar(self.canvas, self))
 
-        canvas.updateGeometry()
+        # Create Figure canvas
+        self.fig = Figure()
+        self.canvas = FigureCanvas(self.fig)
+        self.fig.clear()
+        ax = self.fig.add_subplot()
+        self.plot_scatter(self.scatter_cols, ax=ax)
 
-        plot_attr_selection = PlotAttrSelectionWidget(parent=self, attributes=self.scatter_cols)
-        print(f'Plot items: {plot_attr_selection.get_plot_attr()}')
+        self.canvas.updateGeometry()
 
-        left_col_layout.addWidget(canvas)
-        left_col_layout.addWidget(plot_attr_selection)
+        self.plot_attr_selection = PlotAttrSelectionWidget(parent=self, attributes=self.scatter_cols)
+        self.plot_attr_selection.registerChangeListener(self.update_plot)
+
+        left_col_layout.addWidget(self.canvas, stretch=2)
+        left_col_layout.addWidget(self.plot_attr_selection, stretch=1)
         col_box.setLayout(left_col_layout)
+
         return col_box
+
+    def update_plot(self):
+        print(f'Plot items: {self.plot_attr_selection.get_plot_attr()}')
+        plt_cols = self.plot_attr_selection.get_plot_attr()
+        if len(plt_cols) > 1:
+            self.fig.clear()
+            ax = self.fig.add_subplot()
+            self.canvas.figure.clear()
+            fig = self.plot_scatter(cols=plt_cols, ax=ax)
+            self.canvas.draw_idle()
+        else:
+            print('no plot')
+        print('AFTER DRAW')
 
     def add_rule_part(self):
 
