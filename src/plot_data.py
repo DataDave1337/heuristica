@@ -69,10 +69,10 @@ class ScatterPlotter():
         # pandas version
         c = [cmap[r] for r in df[col_col]]
         if ax is None:
-            axes = pd.plotting.scatter_matrix(df[scatter_cols+[col_col]], c=c, s=200, alpha=0.7)
+            axes = pd.plotting.scatter_matrix(df[scatter_cols+[col_col]], c=c, s=100, alpha=0.7)
             fig = axes[0][0].get_figure()
         else:
-            axes = pd.plotting.scatter_matrix(df[scatter_cols+[col_col]], c=c, s=200, alpha=0.7, ax=ax)
+            axes = pd.plotting.scatter_matrix(df[scatter_cols+[col_col]], c=c, s=100, alpha=0.7, ax=ax)
         # seaborn version
         # pair_plot = sns.pairplot(df[scatter_cols+[col_col]],
         #                         hue=col_col,
@@ -97,7 +97,7 @@ class ScatterPlotter():
         plt.tight_layout()
         return axes
         
-    def print_additional_stats(self):
+    def calc_additional_stats(self):
         conf_mat = pd.crosstab(self.data['bin_target'], self.data['rule_flag'])
         
         print(conf_mat)

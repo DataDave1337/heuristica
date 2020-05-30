@@ -7,17 +7,23 @@ from plot_data import ScatterPlotter
 from matplotlib.backends.backend_qt5agg import (
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from rule_part_widget import RulePartWidget
-from rule_table_model import RuleTableModel
+from rule_table_widget import RuleTableWidget
 from plot_attr_selection_widget import PlotAttrSelectionWidget
 from sklearn import datasets
 from matplotlib.figure import Figure
-
+import pandas as pd
 
 def load_data():
     df = datasets.load_iris(as_frame=True)['frame']
     df.loc[df['target']==2, 'bin_target'] = 1
     df.loc[df['target']!=2, 'bin_target'] = 0
     return df
+
+def calc_ranges(df, cols):
+    ranges = {}
+    for col in cols:
+        ranges[col] = (df[col].min(), df[col].max())
+    return ranges
 
 class MainWindow(QMainWindow):
     
@@ -55,7 +61,6 @@ class MainWindow(QMainWindow):
 
         axes = plotter.scatter_rule(plt_cols, self.rules, ax=ax)
 
-
         # return figure
 
     def __init__(self):
@@ -64,6 +69,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Heuristic Generator")
 
         self.df = load_data()
+        self.ranges = calc_ranges(self.df, self.scatter_cols)
         
         # Menu
         self.menu = self.menuBar()
@@ -134,34 +140,35 @@ class MainWindow(QMainWindow):
             self.canvas.draw_idle()
         else:
             print('no plot')
-        print('AFTER DRAW')
 
     def add_rule_part(self):
 
         n_rule_parts = len(self.rule_parts)
         if n_rule_parts < self.MAX_RULE_PARTS:
-            rule_part = RulePartWidget(rule_number=n_rule_parts+1)
+            rule_part = RulePartWidget(feature_ranges=self.ranges, rule_number=n_rule_parts+1)
             self.rule_parts.append(rule_part)
             self.rule_part_layout.insertWidget(n_rule_parts, rule_part)
+
+    def example_stat_table(self):
+        header = ['Rulepart', 'Confidence', 'Support', 'Lift', 'WRAcc']
+        data = [
+          ['Rulepart 1', 0.766, 0.427, 2.297, 'X'],
+          ['Total Ruleset', 0.766, 0.427, 2.297, 'X']
+        ]
+        table_df = pd.DataFrame(columns=header,
+                                data=data)
+        return table_df
 
     def setup_right_col(self):
 
         right_col_layout = QtWidgets.QVBoxLayout()
         statistics_box = QtWidgets.QGroupBox('Rule statistics')
         statistics_layout = QtWidgets.QVBoxLayout()
-        # rule table
-        table = QtWidgets.QTableView()
+        
+        table_df = self.example_stat_table()
+        # rule statistics table
+        table = RuleTableWidget(table_df)
 
-        data = [
-          [4, 9, 2],
-          [1, 0, 0],
-          [3, 5, 0],
-          [3, 3, 2],
-          [7, 8, 9],
-        ]
-
-        model = RuleTableModel(data)
-        table.setModel(model)
         statistics_layout.addWidget(table)
         statistics_box.setLayout(statistics_layout)
 
