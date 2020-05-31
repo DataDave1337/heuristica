@@ -122,8 +122,7 @@ class PlotAttrSelectionWidget(QtWidgets.QWidget):
         self.btn_move2ign.setDisabled(self.selection_empty(self.list_plot) or self.list_empty(self.list_plot))
         self.btn_moveall2ign.setDisabled(self.list_empty(self.list_plot))
 
-        print(f'Plot ATTR {self.get_plot_attr()}')
-
+        # print(f'Plot ATTR {self.get_plot_attr()}')
         
         for btn in [self.btn_move2plot,
                     self.btn_moveall2plot,

@@ -17,7 +17,9 @@ class RulePartWidget(QtWidgets.QWidget):
         # create widgets
         feat_range = self.feature_ranges[self.features[0]]
         self.min_box = QtWidgets.QDoubleSpinBox()
+        self.min_box.valueChanged.connect(self._min_box_changed)
         self.max_box = QtWidgets.QDoubleSpinBox()
+        self.max_box.valueChanged.connect(self._max_box_changed)
 
         self.min_box.setRange(*feat_range)
         self.max_box.setRange(*feat_range)
@@ -47,6 +49,27 @@ class RulePartWidget(QtWidgets.QWidget):
         self.min_box.setValue(feat_range[0])
         self.max_box.setValue(feat_range[1])
         
-    def get_rule(self):
+    def _min_box_changed(self, val):
+        selected_feature = self.combo_box.currentText()
+        feat_range = self.feature_ranges[selected_feature]
+        # limit by chosen minimum
+        self.max_box.setRange(val, feat_range[1])
 
-        return 
+    def _max_box_changed(self, val):
+        selected_feature = self.combo_box.currentText()
+        feat_range = self.feature_ranges[selected_feature]
+        # limit by chosen minimum
+        self.min_box.setRange(feat_range[0], val)
+
+    def get_rule(self):
+        
+        selected_feature = self.combo_box.currentText()
+        min_val = self.min_box.value()
+        max_val = self.max_box.value()
+        
+        return {'feature': selected_feature, 'range': [min_val, max_val]}
+
+
+    
+
+        # TODO on Spinbox change, set minimum and maximum

@@ -35,19 +35,6 @@ class MainWindow(QMainWindow):
         'petal length (cm)',
         'petal width (cm)']
 
-    rules = [
-        {
-            'rule_attr': 'petal width (cm)',
-            'attr_min': 1.5,
-            'attr_max': None
-        },
-        {
-            'rule_attr': 'petal length (cm)',
-            'attr_min': 5.0,
-            'attr_max': None
-        }
-    ]
-
     def plot_scatter(self, cols=None, ax=None):
 
         plotter = ScatterPlotter(self.df)
@@ -60,8 +47,6 @@ class MainWindow(QMainWindow):
             plt_cols = cols
 
         axes = plotter.scatter_rule(plt_cols, self.rules, ax=ax)
-
-        # return figure
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -89,6 +74,7 @@ class MainWindow(QMainWindow):
         self.layout = QtWidgets.QHBoxLayout(self._main)
 
         self.setup_ui()
+        self.update_plot()
 
         # Window dimensions
         geometry = qApp.desktop().availableGeometry(self)
@@ -115,15 +101,21 @@ class MainWindow(QMainWindow):
         self.fig = Figure()
         self.canvas = FigureCanvas(self.fig)
         self.fig.clear()
-        ax = self.fig.add_subplot()
-        self.plot_scatter(self.scatter_cols, ax=ax)
-
         self.canvas.updateGeometry()
+        
+        # Button for applying the rules and updating the plot and stats
+        add_rule_btn = QtWidgets.QPushButton('Apply and Update')
+        add_rule_btn.clicked.connect(self.update_plot)
+        update_btn_layout = QtWidgets.QHBoxLayout()
+        update_btn_layout.addStretch(stretch=1)
+        update_btn_layout.addWidget(add_rule_btn)
+        update_btn_layout.addStretch(stretch=1)
 
         self.plot_attr_selection = PlotAttrSelectionWidget(parent=self, attributes=self.scatter_cols)
-        self.plot_attr_selection.registerChangeListener(self.update_plot)
+        # self.plot_attr_selection.registerChangeListener(self.update_plot)
 
         left_col_layout.addWidget(self.canvas, stretch=2)
+        left_col_layout.addLayout(update_btn_layout)
         left_col_layout.addWidget(self.plot_attr_selection, stretch=1)
         col_box.setLayout(left_col_layout)
 
@@ -132,17 +124,30 @@ class MainWindow(QMainWindow):
     def update_plot(self):
         print(f'Plot items: {self.plot_attr_selection.get_plot_attr()}')
         plt_cols = self.plot_attr_selection.get_plot_attr()
+        self.rules = self.get_rules()
+        self.fig.clear()
+        # self.canvas.figure.clear()
         if len(plt_cols) > 1:
-            self.fig.clear()
             ax = self.fig.add_subplot()
             self.canvas.figure.clear()
-            fig = self.plot_scatter(cols=plt_cols, ax=ax)
-            self.canvas.draw_idle()
+            self.plot_scatter(cols=plt_cols, ax=ax)
         else:
             print('no plot')
+        
+        self.canvas.draw_idle()
+
+    def get_rules(self):
+        rule_list = []
+        for rp in self.rule_parts:
+            rule_part_dict = {}
+            rule = rp.get_rule()
+            rule_part_dict['rule_attr'] = rule['feature']
+            rule_part_dict['attr_min'] = rule['range'][0]
+            rule_part_dict['attr_max'] = rule['range'][1]
+            rule_list.append(rule_part_dict)
+        return rule_list
 
     def add_rule_part(self):
-
         n_rule_parts = len(self.rule_parts)
         if n_rule_parts < self.MAX_RULE_PARTS:
             rule_part = RulePartWidget(feature_ranges=self.ranges, rule_number=n_rule_parts+1)
@@ -174,7 +179,6 @@ class MainWindow(QMainWindow):
 
         rule_part_box = QtWidgets.QGroupBox('Rule definition')
         self.rule_part_layout = QtWidgets.QVBoxLayout()
-        self.add_rule_part()
         add_rule_btn = QtWidgets.QPushButton('Add Rule part')
         add_rule_btn.clicked.connect(self.add_rule_part)
         btn_layout = QtWidgets.QHBoxLayout()
