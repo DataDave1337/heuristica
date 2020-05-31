@@ -26,12 +26,11 @@ class RulePartWidget(QtWidgets.QWidget):
 
         self.min_box.setValue(feat_range[0])
         self.max_box.setValue(feat_range[1])
+
+        self.rule_id = f'Rule Part {rule_number if rule_number != -1 else "X"}'
     
         # add to layout
-        if rule_number == -1:
-            self.layout.addWidget(QtWidgets.QLabel('Rule Part X', self))
-        else:
-            self.layout.addWidget(QtWidgets.QLabel(f'Rule Part {rule_number}', self))
+        self.layout.addWidget(QtWidgets.QLabel(self.rule_id, self))
         self.layout.addWidget(self.combo_box)
         self.layout.addWidget(QtWidgets.QLabel('between', self))
         self.layout.addWidget(self.min_box)
@@ -67,9 +66,4 @@ class RulePartWidget(QtWidgets.QWidget):
         min_val = self.min_box.value()
         max_val = self.max_box.value()
         
-        return {'feature': selected_feature, 'range': [min_val, max_val]}
-
-
-    
-
-        # TODO on Spinbox change, set minimum and maximum
+        return {'rule_id': self.rule_id, 'feature': selected_feature, 'range': [min_val, max_val]}

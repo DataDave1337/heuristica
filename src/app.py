@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
     
     MAX_RULE_PARTS = 7
 
-    # TODO: Replace by UI attributes
+    # TODO: Specify in config file
     scatter_cols = ['sepal length (cm)',
         'sepal width (cm)',
         'petal length (cm)',
@@ -37,16 +37,12 @@ class MainWindow(QMainWindow):
 
     def plot_scatter(self, cols=None, ax=None):
 
-        plotter = ScatterPlotter(self.df)
-        # plt_attr = self.plot_attr_selection.get_plot_attr()
-        # scatter_plot = plotter.scatter_rule(plt_attr, rules)
-
         if cols is None:
             plt_cols = self.scatter_cols
         else:
             plt_cols = cols
 
-        axes = plotter.scatter_rule(plt_cols, self.rules, ax=ax)
+        axes = self.plotter.scatter_rule(plt_cols, self.rules, ax=ax)
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -74,6 +70,8 @@ class MainWindow(QMainWindow):
         self.layout = QtWidgets.QHBoxLayout(self._main)
 
         self.setup_ui()
+
+        self.plotter = ScatterPlotter(self.df)
         self.update_plot()
 
         # Window dimensions
@@ -122,9 +120,9 @@ class MainWindow(QMainWindow):
         return col_box
 
     def update_plot(self):
-        print(f'Plot items: {self.plot_attr_selection.get_plot_attr()}')
         plt_cols = self.plot_attr_selection.get_plot_attr()
         self.rules = self.get_rules()
+        print(self.rules)
         self.fig.clear()
         # self.canvas.figure.clear()
         if len(plt_cols) > 1:
@@ -132,7 +130,13 @@ class MainWindow(QMainWindow):
             self.canvas.figure.clear()
             self.plot_scatter(cols=plt_cols, ax=ax)
         else:
-            print('no plot')
+            pass
+
+        # Update stat table
+        stats_df = self.plotter.get_rule_stats()
+        print(stats_df)
+        self.stat_table.update_table(stats_df)
+        
         
         self.canvas.draw_idle()
 
@@ -141,6 +145,7 @@ class MainWindow(QMainWindow):
         for rp in self.rule_parts:
             rule_part_dict = {}
             rule = rp.get_rule()
+            rule_part_dict['rule_id'] = rule['rule_id']
             rule_part_dict['rule_attr'] = rule['feature']
             rule_part_dict['attr_min'] = rule['range'][0]
             rule_part_dict['attr_max'] = rule['range'][1]
@@ -154,11 +159,12 @@ class MainWindow(QMainWindow):
             self.rule_parts.append(rule_part)
             self.rule_part_layout.insertWidget(n_rule_parts, rule_part)
 
-    def example_stat_table(self):
-        header = ['Rulepart', 'Confidence', 'Support', 'Lift', 'WRAcc']
+    def initial_stat_table(self):
+        # stat df: ['rule_id','confidence','support', 'lift', 'recall', 'tp', 'tn', 'fp', 'fn']
+        header = ['Rulepart ID', 'Confidence', 'Support', 'Lift', 'Recall', 'TP', 'TN', 'FP', 'FN']
         data = [
-          ['Rulepart 1', 0.766, 0.427, 2.297, 'X'],
-          ['Total Ruleset', 0.766, 0.427, 2.297, 'X']
+        #   ['Rulepart 1', 0.766, 0.427, 2.297, 'X'],
+        #   ['Total Ruleset', 0.766, 0.427, 2.297, 'X']
         ]
         table_df = pd.DataFrame(columns=header,
                                 data=data)
@@ -170,11 +176,11 @@ class MainWindow(QMainWindow):
         statistics_box = QtWidgets.QGroupBox('Rule statistics')
         statistics_layout = QtWidgets.QVBoxLayout()
         
-        table_df = self.example_stat_table()
+        table_df = self.initial_stat_table()
         # rule statistics table
-        table = RuleTableWidget(table_df)
+        self.stat_table = RuleTableWidget(table_df)
 
-        statistics_layout.addWidget(table)
+        statistics_layout.addWidget(self.stat_table)
         statistics_box.setLayout(statistics_layout)
 
         rule_part_box = QtWidgets.QGroupBox('Rule definition')
